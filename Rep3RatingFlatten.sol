@@ -2460,11 +2460,15 @@ pragma solidity 0.8.19;
 contract Rep3Rating is ERC721, ERC721Burnable, Ownable, SchemaResolver {
     using Address for address;
 
+    event Rated(address indexed recipient, address indexed attester, bytes32 uid, bytes data, bool indexed minted);
+
     error InvalidRating();
     error NotTransferable();
 
-    constructor(IEAS eas) ERC721("Rep3 Rating", "REP3") SchemaResolver(eas) {
-       
+    constructor(IEAS eas) ERC721("Rep3 Rating", "REP3") SchemaResolver(eas) {}
+
+    function exists(uint256 tokenId) external view returns (bool) {
+        return _exists(tokenId);
     }
 
     function onAttest(Attestation calldata attestation, uint256 /*value*/) internal override returns (bool) {
@@ -2485,6 +2489,9 @@ contract Rep3Rating is ERC721, ERC721Burnable, Ownable, SchemaResolver {
         uint256 tokenId = uint256(attestation.uid);
         if (_canReceiveERC721(address(0), attestation.recipient, tokenId, "")) {
             _mint(attestation.recipient, tokenId);
+            emit Rated(attestation.recipient, attestation.attester, attestation.uid, attestation.data, true);
+        } else {
+            emit Rated(attestation.recipient, attestation.attester, attestation.uid, attestation.data, false);
         }
 
         return true;
@@ -2533,7 +2540,7 @@ contract Rep3Rating is ERC721, ERC721Burnable, Ownable, SchemaResolver {
         if (to.isContract()) {
             try IERC721Receiver(to).onERC721Received(_msgSender(), from, tokenId, data) returns (bytes4 retval) {
                 return retval == IERC721Receiver.onERC721Received.selector;
-            } catch (bytes memory reaason) {
+            } catch (bytes memory reason) {
                 return false;
             }
         } else {
