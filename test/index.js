@@ -25,8 +25,8 @@ describe("Rep3 Rating Attestation", function () {
     });
 
     var attestationUid;
-    const rating = 5;
-    const review = "Beautiful! Bob is a great guy.";
+    const rating = 3;
+    const review = "Just so so";
 
     it.skip("should revert attestation due to invalid rating", async function() {
         const data = ethers.utils.defaultAbiCoder.encode(["uint8", "string"], [9, review]);
