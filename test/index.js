@@ -8,8 +8,8 @@ require('dotenv').config();
 
 const easAddress = "0xB8fa3922345707Da836aeBa386f39Dc3721d48BF"; // apothem
 const registryAddress = "0x7C31307c71e81A3A8211cF9238bFe72F425eCd42"; // apothem
-const ratingAddress = "0xC6392E9e9636DebbfC5f5DE7CFfF9B37Af80C2cf";
-const schemaUid = "0xfcb53848623c8444d3fe12c1191a83b769c9e2b9144abf4a17dfe941a69cdbd4";
+const ratingAddress = "0x87558DBD63010d532597944DF364Ba8016d8E29D";
+const schemaUid = "0x8c3ab7b8a4b8d4497f6ae63846c35b9e388554761957a98af9a17ad5df4f643b";
 const easJSON = require("./abis/EAS.json");
 
 const signer = new ethers.Wallet(process.env.PRIVATE_KEY, ethers.provider);
@@ -25,8 +25,8 @@ describe("Rep3 Rating Attestation", function () {
     });
 
     var attestationUid;
-    const rating = 3;
-    const review = "Just so so";
+    const rating = 5;
+    const review = "I definitely want to attest that Bob is the orginal Bob of Bob and Alice. The only real one!";
 
     it.skip("should revert attestation due to invalid rating", async function() {
         const data = ethers.utils.defaultAbiCoder.encode(["uint8", "string"], [9, review]);

@@ -2465,6 +2465,8 @@ contract Rep3Rating is ERC721, ERC721Burnable, Ownable, SchemaResolver {
     error InvalidRating();
     error NotTransferable();
 
+    mapping(address => mapping(address => bool)) public rated;
+
     constructor(IEAS eas) ERC721("Rep3 Rating", "REP3") SchemaResolver(eas) {}
 
     function exists(uint256 tokenId) external view returns (bool) {
@@ -2476,7 +2478,11 @@ contract Rep3Rating is ERC721, ERC721Burnable, Ownable, SchemaResolver {
         
         // cannot rate yourself
         if (attestation.attester == attestation.recipient) {
-            // TODO: detect a "response"?
+            revert InvalidRating();
+        }
+
+        // can only rate a recipient once
+        if (rated[attestation.attester][attestation.recipient]) {
             revert InvalidRating();
         }
 
@@ -2494,6 +2500,7 @@ contract Rep3Rating is ERC721, ERC721Burnable, Ownable, SchemaResolver {
             emit Rated(attestation.recipient, attestation.attester, attestation.uid, attestation.data, false);
         }
 
+        rated[attestation.attester][attestation.recipient] = true;
         return true;
     }
 
