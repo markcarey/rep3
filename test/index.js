@@ -8,8 +8,8 @@ require('dotenv').config();
 
 const easAddress = "0xB8fa3922345707Da836aeBa386f39Dc3721d48BF"; // apothem
 const registryAddress = "0x7C31307c71e81A3A8211cF9238bFe72F425eCd42"; // apothem
-const ratingAddress = "0x87558DBD63010d532597944DF364Ba8016d8E29D";
-const schemaUid = "0x8c3ab7b8a4b8d4497f6ae63846c35b9e388554761957a98af9a17ad5df4f643b";
+const ratingAddress = "0x3480193C1C48157e7f3bFf6bC5bfaCB0d49261eF";
+const schemaUid = "0x99e185c8fafb926a3cf0f4550f80adc118482f65213be236820fdd43611c7a83";
 const easJSON = require("./abis/EAS.json");
 
 const signer = new ethers.Wallet(process.env.PRIVATE_KEY, ethers.provider);
@@ -47,6 +47,11 @@ describe("Rep3 Rating Attestation", function () {
     });
 
     it("should make a rating attestation", async function() {
+        //let pendingTx = await ethers.provider.getTransactionReceipt("0x698e227ad839eeae9463dea3767c6059726ca6de9e306b2cc0d641d2c52dc5a0");
+        //console.log(pendingTx);
+        //console.log(pendingTx.logs[0].topics);
+        //const event = eas.interface.parseLog(pendingTx.logs[0]);
+        //console.log("event", JSON.stringify(event));
         const data = ethers.utils.defaultAbiCoder.encode(["uint8", "string"], [rating, review]);
         const attestationRequestData = {
             "recipient": "0xcB49713A2F0f509F559f3552692642c282db397f", // Bob

@@ -19,7 +19,13 @@ contract Rep3Rating is ERC721, ERC721Burnable, Ownable, SchemaResolver {
     error InvalidRating();
     error NotTransferable();
 
+    struct Rep3Summary {
+        uint128 count;
+        uint128 total;
+    }
+
     mapping(address => mapping(address => bool)) public rated;
+    mapping(address => Rep3Summary) public summary;
 
     constructor(IEAS eas) ERC721("Rep3 Rating", "REP3") SchemaResolver(eas) {}
 
@@ -28,7 +34,7 @@ contract Rep3Rating is ERC721, ERC721Burnable, Ownable, SchemaResolver {
     }
 
     function onAttest(Attestation calldata attestation, uint256 /*value*/) internal override returns (bool) {
-        (uint8 rating, string memory review) = abi.decode(attestation.data, (uint8, string));
+        (uint8 rating, ) = abi.decode(attestation.data, (uint8, string));
         
         // cannot rate yourself
         if (attestation.attester == attestation.recipient) {
@@ -55,14 +61,19 @@ contract Rep3Rating is ERC721, ERC721Burnable, Ownable, SchemaResolver {
         }
 
         rated[attestation.attester][attestation.recipient] = true;
+        summary[attestation.recipient].count++;
+        summary[attestation.recipient].total += uint128(rating);
         return true;
     }
 
     function onRevoke(Attestation calldata attestation, uint256 /*value*/) internal override returns (bool) {
+        (uint8 rating, ) = abi.decode(attestation.data, (uint8, string));
         uint256 tokenId = uint256(attestation.uid);
         if (_exists(tokenId)) {
             _burn(tokenId);
         }
+        summary[attestation.recipient].count--;
+        summary[attestation.recipient].total -= uint128(rating);
         return true;
     }
 
@@ -101,7 +112,7 @@ contract Rep3Rating is ERC721, ERC721Burnable, Ownable, SchemaResolver {
         if (to.isContract()) {
             try IERC721Receiver(to).onERC721Received(_msgSender(), from, tokenId, data) returns (bytes4 retval) {
                 return retval == IERC721Receiver.onERC721Received.selector;
-            } catch (bytes memory reason) {
+            } catch (bytes memory /*reason*/) {
                 return false;
             }
         } else {
