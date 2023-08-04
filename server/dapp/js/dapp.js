@@ -8,6 +8,7 @@ var addr = {};
 addr.apothem = {
     "eas": "0xB8fa3922345707Da836aeBa386f39Dc3721d48BF",
     "rep3": "0x3480193C1C48157e7f3bFf6bC5bfaCB0d49261eF",
+    "schemaUid": "0x99e185c8fafb926a3cf0f4550f80adc118482f65213be236820fdd43611c7a83",
     "evmChainId": 51,
     "testnet": true,
     "name": "XDC Apothem",
@@ -31,14 +32,14 @@ function setupChain() {
         provider = new ethers.providers.Web3Provider(window.ethereum, "any");
     }
     var wssProvider = new ethers.providers.WebSocketProvider(
-        "wss://" + rpcURL
+        "wss://" + addr[chain].wss
     );
     eas = new ethers.Contract(
-        addr[chain].easAddress,
+        addr[chain].eas,
         easABI,
         wssProvider
     );
-    web3 = AlchemyWeb3.createAlchemyWeb3("wss://"+rpcURL);
+    web3 = AlchemyWeb3.createAlchemyWeb3("wss://" + addr[chain].wss);
 }
 setupChain();
 
@@ -63,6 +64,7 @@ async function connect(){
         accounts[0] = await ethersSigner.getAddress();
         console.log(accounts);
         $(".connected-address").text(abbrAddress());
+        $("#review-button").text('Submit');
     } else {
         // The user doesn't have Metamask installed.
         console.log("window.ethereum false");
@@ -71,7 +73,22 @@ async function connect(){
 
 async function review(data) {
     console.log(data);
-
+    const rating = parseInt(data.rating);
+    const attData = ethers.utils.defaultAbiCoder.encode(["uint8", "string"], [rating, data.review]);
+    const attestationRequestData = {
+        "recipient": data.address,
+        "expirationTime": 0,
+        "revocable": true,
+        "refUID": ethers.constants.HashZero,
+        "data": attData,
+        "value": 0
+    };
+    const attestationRequest = {
+        "schema": addr[chain].schemaUid,
+        "data": attestationRequestData
+    };
+    console.log(attestationRequest);
+    await eas.connect(ethersSigner).attest(attestationRequest);
 }
 
 
@@ -82,20 +99,35 @@ $( document ).ready(function() {
         return false;
     });
 
-    $("#review-button").click(function(){
+    $("#review-button").click(function(e){
+        e.preventDefault();
         if ( !accounts[0] ) {
             connect();
             return false;
         }
         $(this).text("Submitting...");
         const rating = $("#profile-rating").val();
-        console.log(rating);
+        //console.log(rating);
         const data = {
             "rating": rating,
             "review": $("#review").val(),
             "address": $(this).data("address")
         };
         review(data);
+        return false;
+    });
+
+    $('#search').keypress(function(event){
+        console.log("search enter with " + $(this).val());
+        var keycode = (event.keyCode ? event.keyCode : event.which);
+        if(keycode == '13'){
+            var address = $(this).val();
+            // TODO: validate input
+            var valid = true;
+            if (valid) {
+                window.location = `/profile/${address}`;
+            }
+        }
         return false;
     });
 
