@@ -17,7 +17,7 @@ var eas, nft;
 const airstackAPI = `https://api.airstack.xyz/gql`;
 
 function getContracts() {
-    var provider = new ethers.providers.JsonRpcProvider({"url": process.env.API_URL_APOTHEM});
+    const provider = new ethers.providers.JsonRpcProvider({"url": process.env.API_URL_APOTHEM});
     eas = new ethers.Contract(process.env.EAS_ADDRESS, easJSON.abi, provider);
     nft = new ethers.Contract(process.env.REP3_ADDRESS, rep3JSON.abi, provider);
 }
@@ -187,10 +187,11 @@ api.get("/api", async function (req, res) {
 });
 
 api.get("/api/profile/:address", async function (req, res) {
+    const address = req.params.address;
     getContracts();
     var start = 52298258 - 1;
     var end = 'latest';
-    let rated = nft.filters.Rated(req.params.address);
+    let rated = nft.filters.Rated(address);
     let ratedLogs = await nft.queryFilter(rated, start, end);
     console.log(JSON.stringify(ratedLogs));
     var ratings = [];
@@ -210,8 +211,8 @@ api.get("/api/profile/:address", async function (req, res) {
         ratings.push(rating);
     }
     const average = total ? (total / ratings.length) : 0;
-    const profileData = await getProfileData(req.params.address);
-    const name = getName(req.params.address, profileData);
+    const profileData = await getProfileData(address);
+    const name = getName(address, profileData);
     var nfts = [];
     if (profileData.nfts_eth.TokenBalance) {
       nfts = profileData.nfts_eth.TokenBalance;
@@ -219,20 +220,88 @@ api.get("/api/profile/:address", async function (req, res) {
     if (profileData.nfts_poly.TokenBalance) {
       nfts = nfts.concat(profileData.nfts_poly.TokenBalance);
     }
+    const provider = new ethers.providers.JsonRpcProvider({"url": process.env.API_URL_ETHEREUM});
+    const ethBalanceWei = await provider.getBalance(address);
+    const ethBalance = parseFloat(ethers.utils.formatEther(ethBalanceWei));
     const profile = {
       "name": name,
+      "eth": ethBalance,
       "usdc": profileData.usdc.TokenBalance ? profileData.usdc.TokenBalance[0].formattedAmount : 0,
       "xmtp": profileData.xmtp.XMTP ? profileData.xmtp.XMTP[0] : {},
       "poaps": profileData.poaps.Poap ? profileData.poaps.Poap : [],
       "nfts": nfts
     }
     return res.json({
-      "address": req.params.address, 
+      "address": address, 
       "average": average, 
       "count": ratings.length, 
       "ratings": ratings, 
       "profile": profile
     });
 });
+
+api.get('/meta/:id', async function (req, res) {
+  console.log("start /meta/ with path", req.path);
+  const tokenId = req.params.id;
+  console.log('tokenId', tokenId);
+  var cache = 'public, max-age=3600, s-maxage=86400';
+  cache = 'public, max-age=1, s-maxage=2'; // TODO: remove this later
+  var meta = {};
+
+  const id = ethers.BigNumber.from(tokenId);
+  const uid = ethers.utils.hexZeroPad(id.toHexString(), 32);
+  console.log("uid",uid);
+  //meta.uid = uid;
+
+  // get assestation
+  getContracts();
+  const attestation = await eas.getAttestation(uid);
+  //meta.attestation = attestation;
+
+  const [ rating, review ] = ethers.utils.defaultAbiCoder.decode(["uint8", "string"], attestation.data);
+  meta.name = `Rep3 Rating: ${rating}`;
+  meta.description = review;
+  meta.external_url = `https://rep3.bio/profile/${attestation.recipient}`;
+  meta.image = `https://rep3.bio/images/${rating}.png`;
+  meta.attributes = [
+    {
+        "trait_type": "Attester", 
+        "value": attestation.attester
+    }, 
+    {
+      "trait_type": "Recipient", 
+      "value": attestation.recipient
+    },
+    {
+      "trait_type": "Rating", 
+      "value": parseInt(rating),
+      "max_value": 5
+    },
+    {
+      "trait_type": "Date",
+      "value": parseInt(attestation.time),
+      "display_type": "date"
+    },
+    {
+      "trait_type": "Attestation Uid",
+      "value": uid
+    },
+    {
+      "trait_type": "Attestation Schema",
+      "value": attestation.schema
+    }
+  ];
+
+  console.log("meta", JSON.stringify(meta));
+
+  
+
+
+  if (!meta) {
+      return res.json({"error": "not found"});
+  }
+  res.set('Cache-Control', cache);
+  return res.json(meta); 
+}); // meta
 
 module.exports.api = api;
