@@ -72,6 +72,7 @@ contract Rep3Rating is ERC721, ERC721Burnable, Ownable, SchemaResolver {
         if (_exists(tokenId)) {
             _burn(tokenId);
         }
+        rated[attestation.attester][attestation.recipient] = false;
         summary[attestation.recipient].count--;
         summary[attestation.recipient].total -= uint128(rating);
         return true;
