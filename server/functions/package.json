@@ -16,6 +16,7 @@
     "firebase-admin": "^10.0.2",
     "firebase-functions": "^3.18.0",
     "ethers": "^5.7.2",
+    "@tokenbound/sdk-ethers": "^0.2.0",
     "express-jwt": "^8.4.1",
     "node-fetch": "^2.6.1"
   },

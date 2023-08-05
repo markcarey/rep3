@@ -7,6 +7,7 @@ const express = require("express");
 const api = express();
 
 const { ethers } = require("ethers");
+const tokenbound = require("@tokenbound/sdk-ethers");
 
 const rep3JSON = require(__base + 'rep3/Rep3Rating.json');
 const easJSON = require(__base + 'rep3/EAS.json');
@@ -147,6 +148,20 @@ function airstackQuery() {
   `;
 }
 
+function airstackNftImage(blockchain, address, id) {
+  return `query NFTImage {
+    TokenNft(
+      input: {tokenId: "${id}", blockchain: ${blockchain}, address: "${address}"}
+    ) {
+      contentValue {
+        image {
+          small
+        }
+      }
+    }
+  }`;
+}
+
 async function getProfileData(address) {
   return new Promise(async (resolve, reject) => {
       const headers = {
@@ -165,6 +180,24 @@ async function getProfileData(address) {
       });
       var profileResult = await res.json();        
       resolve(profileResult.data);
+  });
+}
+
+async function getNftImage(blockchain, address, id) {
+  return new Promise(async (resolve, reject) => {
+      const headers = {
+          'Content-Type': 'application/json',
+          'Authorization': process.env.AIRSTACK_API_KEY
+      };
+      var res = await fetch(airstackAPI, { 
+          method: 'POST', 
+          headers: headers,
+          body: JSON.stringify({
+              "query": airstackNftImage(blockchain, address, id)
+          })
+      });
+      var result = await res.json();        
+      resolve(result.data.TokenNft.contentValue.image.small);
   });
 }
 
@@ -255,9 +288,30 @@ api.get("/api", async function (req, res) {
     return res.json({"what": "rep3 api", "why": "tba"});
 });
 
-api.get("/api/profile/:address", async function (req, res) {
-    const address = req.params.address;
-    var type = "Address";  // TODO: 6551, contract
+api.get(["/api/profile/:address", "/api/nft/:blockchain/:address/:id"], async function (req, res) {
+    const provider = new ethers.providers.JsonRpcProvider({"url": process.env.API_URL_ETHEREUM});
+    var address = req.params.address;  
+    var type = "Address";  // 6551, contract
+    var image;
+    const blockchain = req.params.blockchain;
+    if (blockchain) {
+      // this is an NFT
+      if (blockchain == "ethereum") {
+        address = await tokenbound.getAccount(req.params.address, req.params.id, provider);
+        type = "6551 Account";
+      } else if (blockchain == "polygon") {
+        var providerPolygon = new ethers.providers.JsonRpcProvider({"url": process.env.API_URL_POLYGON});
+        address = await tokenbound.getAccount(req.params.address, req.params.id, providerPolygon);
+        type = "6551 Account";
+      }
+      image = await getNftImage(blockchain, req.params.address, req.params.id);
+    } else {
+      const code = await provider.getCode(address);
+      if (code !== '0x') {
+        type = "Contract";
+      }
+    }
+    
     getContracts();
     var start = 52298258 - 1;
     var end = 'latest';
@@ -291,16 +345,17 @@ api.get("/api/profile/:address", async function (req, res) {
       nfts = nfts.concat(profileData.nfts_poly.TokenBalance);
     }
     const socials = getSocials(profileData.socials.Social);
-    const provider = new ethers.providers.JsonRpcProvider({"url": process.env.API_URL_ETHEREUM});
     const ethBalanceWei = await provider.getBalance(address);
     const ethBalance = parseFloat(ethers.utils.formatEther(ethBalanceWei));
-    var image = `https://web3-images-api.kibalabs.com/v1/accounts/${address}/image`;
-    if (nfts.length > 0) {
-      image = nfts[0].tokenNfts.contentValue.image.small; // TODO: update to check for NFTs missing metadata and/or images?
-      if ( image.startsWith('ipfs://') ) {
-        image = ipfsToHttp(image);
-      }
-    }
+    if (!image) {
+      image = `https://web3-images-api.kibalabs.com/v1/accounts/${address}/image`;
+      if (nfts.length > 0) {
+        image = nfts[0].tokenNfts.contentValue.image.small; // TODO: update to check for NFTs missing metadata and/or images?
+        if ( image.startsWith('ipfs://') ) {
+          image = ipfsToHttp(image);
+        }
+      } // if nfts.length
+    } // if !image
     const profile = {
       "name": name,
       "image": image,

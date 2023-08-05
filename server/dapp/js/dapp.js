@@ -65,6 +65,7 @@ async function connect(){
         accounts[0] = await ethersSigner.getAddress();
         console.log(accounts);
         $(".connected-address").text(abbrAddress());
+        $(".connected-avatar").attr("src", `https://web3-images-api.kibalabs.com/v1/accounts/${accounts[0]}/image`);
         $("#review-button").text('Submit');
     } else {
         // The user doesn't have Metamask installed.
@@ -113,6 +114,7 @@ async function renderProfile(user) {
             });
         });
     }
+    $("#review-button").data("address", user.address);
     for (let i = 0; i < user.profile.nfts.length; i++) {
         if (user.profile.nfts[i].tokenNfts.contentValue.image) {
             $("#profile-nfts").append( getNftHTML(user.profile.nfts[i]) );
@@ -136,7 +138,30 @@ async function getRep(address) {
     console.log(user);
     await renderProfile(user);
 }
-getRep('0x09A900eB2ff6e9AcA12d4d1a396DdC9bE0307661'); // TODO: change this
+async function getNft(blockchain, address, id) {
+    const res = await fetch(`https://api.rep3.bio/api/nft/${blockchain}/${address}/${id}`, { 
+        method: 'GET', 
+        headers: {
+            "Content-Type": "application/json"
+        }
+    });
+    var user = await res.json();
+    console.log(user);
+    await renderProfile(user);
+}
+
+const path = window.location.pathname.split('/');
+console.log("path", path);
+
+if ( path[1] == "nft" ) {
+    getNft(path[2], path[3], path[4]);
+} else if ( path[1] == "profile") {
+    getRep(path[2]);
+} else {
+    // TODO: home page?
+}
+
+//getRep('0x09A900eB2ff6e9AcA12d4d1a396DdC9bE0307661'); // TODO: change this
 //getRep('0xcB49713A2F0f509F559f3552692642c282db397f'); // Bob TODO: change this
 
 
@@ -208,7 +233,7 @@ function getNftHTML(data) {
             <figcaption itemprop="caption description">
                 <h4>${nft.tokenNfts.metaData.name}</h4>
                 <p>${nft.tokenNfts.metaData.description}</p>
-                <a href="/profile/${nft.tokenAddress}/${nft.tokenId}" target="_blank"><img src="https://rep3.bio/images/rep3.png" class="nft-icons" /></a>
+                <a href="/nft/${nft.blockchain}/${nft.tokenAddress}/${nft.tokenId}" target="_blank"><img src="https://rep3.bio/images/rep3.png" class="nft-icons" /></a>
                 <a href="${explorerUrl}" target="_blank"><img src="https://rep3.bio/images/${explorerImage}" class="nft-icons" /></a>
             </figcaption>
         </figure>

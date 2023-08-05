@@ -68,6 +68,9 @@
       .nft-icons {
         height: 64px;
       }
+      .connected-avatar {
+        height: 35px;
+      }
     </style>
   </head>
   <body> 
@@ -254,7 +257,7 @@
                 </div>
               </li>
               <li class="profile-nav onhover-dropdown pe-0 py-0">
-                <div class="media profile-media"><img class="b-r-10" class="connected-avatar" src="/assets/images/dashboard/profile.png" alt="">
+                <div class="media profile-media"><img class="b-r-10 connected-avatar" src="/assets/images/dashboard/profile.png" alt="">
                   <div class="media-body">
                     <span class="connected-address">Bob</span>
                   </div>
@@ -1034,7 +1037,7 @@
                                     <textarea class="form-control" id="review" placeholder="Enter Your Review"></textarea>
                                   </div>
                                   <div class="col-12">
-                                    <button id="review-button" data-address="0x09A900eB2ff6e9AcA12d4d1a396DdC9bE0307661" class="btn btn-primary" type="submit">Connect</button>
+                                    <button id="review-button" data-address="" class="btn btn-primary" type="submit">Connect</button>
                                   </div>
                                 </form>
                               </div>
@@ -1222,6 +1225,6 @@
     <script src="https://cdn.ethers.io/lib/ethers-5.1.umd.min.js" type="text/javascript"></script>  
     <script src="https://cdn.jsdelivr.net/npm/@alch/alchemy-web3@latest/dist/alchemyWeb3.min.js"></script>
     <script src="/js/abis.js?v=2"></script>
-    <script src="/js/dapp.js?v=6"></script>
+    <script src="/js/dapp.js?v=10"></script>
   </body>
 </html>
