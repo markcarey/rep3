@@ -132,8 +132,12 @@ async function getProfileData(address) {
   });
 }
 
+function abbrAddress(address){
+  return address.slice(0,4) + "..." + address.slice(address.length - 4);
+}
+
 function getName(address, profile) {
-  var name = address;
+  var name = abbrAddress(address);
   if ("ens" in profile ) {
     if ("Domain" in profile.ens) {
       if (profile.ens.Domain && profile.ens.Domain.length > 0) {
@@ -188,6 +192,7 @@ api.get("/api", async function (req, res) {
 
 api.get("/api/profile/:address", async function (req, res) {
     const address = req.params.address;
+    var type = "Address";  // TODO: 6551, contract
     getContracts();
     var start = 52298258 - 1;
     var end = 'latest';
@@ -223,16 +228,23 @@ api.get("/api/profile/:address", async function (req, res) {
     const provider = new ethers.providers.JsonRpcProvider({"url": process.env.API_URL_ETHEREUM});
     const ethBalanceWei = await provider.getBalance(address);
     const ethBalance = parseFloat(ethers.utils.formatEther(ethBalanceWei));
+    var image = `https://web3-images-api.kibalabs.com/v1/accounts/${address}/image`;
+    if (nfts.length > 0) {
+      image = nfts[0].tokenNfts.metaData.image; // TODO: update to check for NFTs missing metadata and/or images?
+    }
     const profile = {
       "name": name,
+      "image": image,
       "eth": ethBalance,
       "usdc": profileData.usdc.TokenBalance ? profileData.usdc.TokenBalance[0].formattedAmount : 0,
+      "socials": profileData.socials,
       "xmtp": profileData.xmtp.XMTP ? profileData.xmtp.XMTP[0] : {},
       "poaps": profileData.poaps.Poap ? profileData.poaps.Poap : [],
       "nfts": nfts
     }
     return res.json({
       "address": address, 
+      "type": type,
       "average": average, 
       "count": ratings.length, 
       "ratings": ratings, 

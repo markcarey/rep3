@@ -23,7 +23,7 @@ var chain = "apothem";
 var accounts = [];
 var provider, ethersSigner;
 var eas;
-var profileAddress;
+var profileAddress, profileUser;
 
 function setupChain() {
     var rpcURL = addr[chain].rpc;
@@ -72,6 +72,10 @@ async function connect(){
     } 
 }
 
+async function renderProfile(user) {
+    $("#profile-avatar").data("address", user.address).attr("src", user.image);
+}
+
 async function getRep(address) {
     const res = await fetch(`https://api.rep3.bio/api/profile/${address}`, { 
         method: 'GET', 
@@ -81,8 +85,11 @@ async function getRep(address) {
     });
     var user = await res.json();
     console.log(user);
+    await renderProfile(user);
 }
 getRep('0x09A900eB2ff6e9AcA12d4d1a396DdC9bE0307661'); // TODO: change this
+
+
 
 async function review(data) {
     console.log(data);
