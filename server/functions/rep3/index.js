@@ -69,6 +69,15 @@ function airstackQuery() {
             image
             description
           }
+          contentValue {
+            image {
+              extraSmall
+              small
+              medium
+              large
+              original
+            }
+          }
         }
       }
     }
@@ -83,6 +92,15 @@ function airstackQuery() {
             name
             image
             description
+          }
+          contentValue {
+            image {
+              extraSmall
+              small
+              medium
+              large
+              original
+            }
           }
         }
       }
@@ -136,6 +154,15 @@ function abbrAddress(address){
   return address.slice(0,4) + "..." + address.slice(address.length - 4);
 }
 
+function ipfsToHttp(ipfs) {
+  var http = "";
+  var cid = ipfs.replace("ipfs://", "");
+  //http = "https://" + cid + ".ipfs.dweb.link";
+  //http = "https://ipfs.io/ipfs/" + cid;
+  http = "https://nftstorage.link/ipfs/" + cid;
+  return http;
+}
+
 function getName(address, profile) {
   var name = abbrAddress(address);
   if ("ens" in profile ) {
@@ -155,6 +182,26 @@ function getName(address, profile) {
     }
   }
   return name;
+}
+
+function getSocials(socialData) {
+  var lens = null;
+  var farcaster = null;
+  if (socialData) {
+    for (let i = 0; i < socialData.length; i++) {
+      if (socialData[i].dappName == "lens") {
+        lens = socialData[i].profileName;
+      }
+      if (socialData[i].dappName == "farcaster") {
+        farcaster = socialData[i].profileName;
+      }
+    }
+  }
+  var socials = {
+    "lens": lens,
+    "farcaster": farcaster
+  }
+  return socials;
 }
 
 function getParams(req, res, next) {
@@ -225,19 +272,23 @@ api.get("/api/profile/:address", async function (req, res) {
     if (profileData.nfts_poly.TokenBalance) {
       nfts = nfts.concat(profileData.nfts_poly.TokenBalance);
     }
+    const socials = getSocials(profileData.socials.Social);
     const provider = new ethers.providers.JsonRpcProvider({"url": process.env.API_URL_ETHEREUM});
     const ethBalanceWei = await provider.getBalance(address);
     const ethBalance = parseFloat(ethers.utils.formatEther(ethBalanceWei));
     var image = `https://web3-images-api.kibalabs.com/v1/accounts/${address}/image`;
     if (nfts.length > 0) {
-      image = nfts[0].tokenNfts.metaData.image; // TODO: update to check for NFTs missing metadata and/or images?
+      image = nfts[0].tokenNfts.contentValue.image.small; // TODO: update to check for NFTs missing metadata and/or images?
+      if ( image.startsWith('ipfs://') ) {
+        image = ipfsToHttp(image);
+      }
     }
     const profile = {
       "name": name,
       "image": image,
       "eth": ethBalance,
       "usdc": profileData.usdc.TokenBalance ? profileData.usdc.TokenBalance[0].formattedAmount : 0,
-      "socials": profileData.socials,
+      "socials": socials,
       "xmtp": profileData.xmtp.XMTP ? profileData.xmtp.XMTP[0] : {},
       "poaps": profileData.poaps.Poap ? profileData.poaps.Poap : [],
       "nfts": nfts

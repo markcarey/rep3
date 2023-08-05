@@ -73,7 +73,32 @@ async function connect(){
 }
 
 async function renderProfile(user) {
-    $("#profile-avatar").data("address", user.address).attr("src", user.image);
+    $("#profile-title").text(user.address);
+    $("#profile-avatar").data("address", user.address).attr("src", user.profile.image);
+    $("#profile-address").text(user.address);
+    $("#profile-name").text(user.profile.name);
+    $("#profile-type").text(user.type);
+    $("#profile-average-rating").data("current-rating", user.average).barrating({
+        theme: "fontawesome-stars-o",
+        showSelectedRating: false,
+        initialRating: user.average,
+        readonly: true
+    });
+    $("#top-transactions").attr("href", `https://etherscan.io/address/${user.address}`); // TODO: other chains?
+    $("#profile-eth").text(user.profile.eth.toFixed(2)).counterUp({
+        delay: 10,
+        time: 1000
+    });
+    $("#profile-usdc").text(user.profile.usdc.toFixed(0)).counterUp({
+        delay: 10,
+        time: 1000
+    });
+    if (user.profile.socials.lens) {
+        $("#lens").attr("href", `https://www.lensfrens.xyz/${user.profile.socials.lens}`).attr("data-bs-original-title", user.profile.socials.lens).tooltip().parent().show();
+    }
+    if (user.profile.socials.farcaster) {
+        $("#farcaster").attr("href", `https://warpcast.com/${user.profile.socials.farcaster}`).attr("data-bs-original-title", user.profile.socials.farcaster).tooltip().parent().show();
+    }
 }
 
 async function getRep(address) {
@@ -87,8 +112,8 @@ async function getRep(address) {
     console.log(user);
     await renderProfile(user);
 }
-getRep('0x09A900eB2ff6e9AcA12d4d1a396DdC9bE0307661'); // TODO: change this
-
+//getRep('0x09A900eB2ff6e9AcA12d4d1a396DdC9bE0307661'); // TODO: change this
+getRep('0xcB49713A2F0f509F559f3552692642c282db397f'); // Bob TODO: change this
 
 
 async function review(data) {

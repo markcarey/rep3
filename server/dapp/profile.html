@@ -62,6 +62,9 @@
       .social-icon {
         height: 32px;
       }
+      .socials li {
+        display: none;
+      }
     </style>
   </head>
   <body> 
@@ -964,18 +967,18 @@
                     </div>
                     <hr>
                     <div class="social-media">
-                      <ul class="list-inline">
-                        <li class="list-inline-item"><a href="https://lens.xyz/" target="_blank"><img class="social-icon" src="/images/lens-grey.png"></a></li>
-                        <li class="list-inline-item"><a href="https://farcaster.xyz/" target="_blank"><img class="social-icon" src="/images/farcaster-grey.png"></a></a></li>
+                      <ul class="list-inline socials">
+                        <li class="list-inline-item"><a href="https://lens.xyz/" id="lens" target="_blank" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-original-title="Lens"><img class="social-icon" src="/images/lens-grey.png"></a></li>
+                        <li class="list-inline-item"><a href="https://farcaster.xyz/" id="farcaster" target="_blank" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-original-title="Farcaster"><img class="social-icon" src="/images/farcaster-grey.png"></a></a></li>
                       </ul>
                     </div>
                     <div class="follow">
                       <div class="row">
                         <div class="col-6 text-md-end border-right">
-                          <div id="profile-eth" class="follow-num counter">14.5</div><span>ETH</span>
+                          <div id="profile-eth" class="follow-num counter">0</div><span>ETH</span>
                         </div>
                         <div class="col-6 text-md-start">
-                          <div id="profile-usdc" class="follow-num counter">2500</div><span>USDC</span>
+                          <div id="profile-usdc" class="follow-num counter">0</div><span>USDC</span>
                         </div>
                       </div>
                     </div>
@@ -1407,6 +1410,7 @@
     <script src="/assets/js/rating/jquery.barrating.js"></script>
     <script src="/assets/js/rating/rating-script.js?v=5"></script>
     <script src="/assets/js/rating/emoji_rating.js"></script>
+    <script src="/assets/js/tooltip-init.js"></script>
     <!-- Plugins JS Ends-->
     <!-- Theme js-->
     <script src="/assets/js/script.js"></script>
@@ -1415,6 +1419,6 @@
     <script src="https://cdn.ethers.io/lib/ethers-5.1.umd.min.js" type="text/javascript"></script>  
     <script src="https://cdn.jsdelivr.net/npm/@alch/alchemy-web3@latest/dist/alchemyWeb3.min.js"></script>
     <script src="/js/abis.js?v=2"></script>
-    <script src="/js/dapp.js?v=3"></script>
+    <script src="/js/dapp.js?v=6"></script>
   </body>
 </html>
