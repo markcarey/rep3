@@ -28,11 +28,24 @@ function airstackQuery() {
     poaps: Poaps(input: {filter: {owner: {_eq: $address}}, blockchain: ALL}) {
       Poap {
         dappName
+        tokenAddress
+        tokenId
+        blockchain
+        chainId
         poapEvent {
           description
           eventName
           city
           metadata
+          contentValue {
+            image {
+              extraSmall
+              small
+              medium
+              large
+              original
+            }
+          }
         }
       }
     }
@@ -59,6 +72,7 @@ function airstackQuery() {
     ) {
       TokenBalance {
         blockchain
+        chainId
         tokenId
         tokenAddress
         tokenNfts {
@@ -86,8 +100,12 @@ function airstackQuery() {
     ) {
       TokenBalance {
         blockchain
+        chainId
         tokenId
+        tokenAddress
         tokenNfts {
+          address
+          id
           metaData {
             name
             image

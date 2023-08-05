@@ -99,6 +99,30 @@ async function renderProfile(user) {
     if (user.profile.socials.farcaster) {
         $("#farcaster").attr("href", `https://warpcast.com/${user.profile.socials.farcaster}`).attr("data-bs-original-title", user.profile.socials.farcaster).tooltip().parent().show();
     }
+    for (let i = 0; i < user.ratings.length; i++) {
+        $("#profile-reviews").prepend( getReviewHTML(user.ratings[i]) );
+    }
+    if (user.ratings.length > 0) {
+        $(".u-rating-fontawesome-o").each(function(){
+            var currentRating = $(this).data("current-rating");
+            $(this).barrating({
+              theme: "fontawesome-stars-o",
+              showSelectedRating: false,
+              initialRating: currentRating,
+              readonly: true
+            });
+        });
+    }
+    for (let i = 0; i < user.profile.nfts.length; i++) {
+        if (user.profile.nfts[i].tokenNfts.contentValue.image) {
+            $("#profile-nfts").append( getNftHTML(user.profile.nfts[i]) );
+        }
+    }
+    for (let i = 0; i < user.profile.poaps.length; i++) {
+        if (user.profile.poaps[i].poapEvent.contentValue.image) {
+            $("#profile-poaps").append( getPoapHTML(user.profile.poaps[i]) );
+        }
+    }
 }
 
 async function getRep(address) {
@@ -112,8 +136,8 @@ async function getRep(address) {
     console.log(user);
     await renderProfile(user);
 }
-//getRep('0x09A900eB2ff6e9AcA12d4d1a396DdC9bE0307661'); // TODO: change this
-getRep('0xcB49713A2F0f509F559f3552692642c282db397f'); // Bob TODO: change this
+getRep('0x09A900eB2ff6e9AcA12d4d1a396DdC9bE0307661'); // TODO: change this
+//getRep('0xcB49713A2F0f509F559f3552692642c282db397f'); // Bob TODO: change this
 
 
 async function review(data) {
@@ -136,6 +160,82 @@ async function review(data) {
     await eas.connect(ethersSigner).attest(attestationRequest);
 }
 
+function getReviewHTML(data) {
+    var html = '';
+    data.image = `https://web3-images-api.kibalabs.com/v1/accounts/${data.attester}/image`;
+    data.name = abbrAddress(data.attester);
+    html = `
+        <!-- Review -->
+        <div class="your-msg review-block">
+        <div class="media"><img class="img-50 img-fluid m-r-20 rounded-circle attester-avatar" alt="" src="${data.image}">
+            <div class="media-body"><span class="f-w-600"><a class="attestor" href="/profile/${data.attester}">${data.name}</a> <!--<span>1 Year Ago</span>--> </span>
+            <select class="rating u-rating-fontawesome-o" name="rating" data-current-rating="${data.rating}" autocomplete="off">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+            </select>
+            <p class="review">${data.review}</p>
+            </div>
+        </div>
+        </div>
+    `;
+    return html;
+}
+
+function getNftHTML(data) {
+    const nft = data;
+    var html = '';
+    var tba = "tbd";
+    var explorerUrl = '';
+    var explorerImage = '';
+    if (nft.blockchain == "polygon") {
+        explorerUrl = `https://polygonscan.com/token/${nft.tokenAddress}?a=${nft.tokenId}#inventory`;
+        explorerImage = 'polygon.svg';
+    }
+    if (nft.blockchain == "ethereum") {
+        explorerUrl = `https://etherscan.io/nft/${nft.tokenAddress}/${nft.tokenId}`;
+        explorerImage = 'etherscan.svg';
+    }
+    html = `
+        <!-- nft block -->
+        <figure class="col-xl-3 col-sm-6" itemprop="associatedMedia" itemscope=""><a href="${nft.tokenNfts.contentValue.image.large}" itemprop="contentUrl" data-size="950x950"><img src="${nft.tokenNfts.contentValue.image.small}" itemprop="thumbnail" alt="Image description">
+            <div class="caption">
+            <h4>${nft.tokenNfts.metaData.name}</h4>
+            <p>${nft.tokenNfts.metaData.description}</p>
+            </div></a>
+            <figcaption itemprop="caption description">
+                <h4>${nft.tokenNfts.metaData.name}</h4>
+                <p>${nft.tokenNfts.metaData.description}</p>
+                <a href="/profile/${nft.tokenAddress}/${nft.tokenId}" target="_blank"><img src="https://rep3.bio/images/rep3.png" class="nft-icons" /></a>
+                <a href="${explorerUrl}" target="_blank"><img src="https://rep3.bio/images/${explorerImage}" class="nft-icons" /></a>
+            </figcaption>
+        </figure>
+    `;
+    return html;
+}
+
+function getPoapHTML(data) {
+    const poap = data;
+    var html = '';
+    var tba = "tbd";
+    html = `
+        <!-- nft block -->
+        <figure class="col-xl-3 col-sm-6" itemprop="associatedMedia" itemscope=""><a href="${poap.poapEvent.contentValue.image.large}" itemprop="contentUrl" data-size="950x950"><img src="${poap.poapEvent.contentValue.image.small}" itemprop="thumbnail" alt="Image description">
+            <div class="caption">
+            <h4>${poap.poapEvent.metadata.name}</h4>
+            <p>${poap.poapEvent.metadata.description}</p>
+            </div></a>
+            <figcaption itemprop="caption description">
+                <h4>${poap.poapEvent.metadata.name}</h4>
+                <p>${poap.poapEvent.metadata.description}</p>
+                <a href="/profile/${poap.tokenAddress}/${poap.tokenId}" target="_blank"><img src="https://rep3.bio/images/rep3.png" class="nft-icons" /></a>
+            </figcaption>
+        </figure>
+    `;
+    return html;
+}
 
 $( document ).ready(function() {
 
