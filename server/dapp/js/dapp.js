@@ -4,6 +4,19 @@ const sleep = (milliseconds) => {
     return new Promise(resolve => setTimeout(resolve, milliseconds))
 };
 
+const chains = {};
+chains["51"] = {
+    "chainId":  ethers.utils.hexValue(51),
+    "chainName": "XDC Apothem Testnet",
+    "nativeCurrency": {
+        "name": "TXDC",
+        "symbol": "TXDC",
+        "decimals": 18
+    },
+    "rpcUrls": ["https://rpc.apothem.network"],
+    "blockExplorerUrls": ["https://explorer.apothem.network/"],
+}
+
 var addr = {};
 addr.apothem = {
     "eas": "0xB8fa3922345707Da836aeBa386f39Dc3721d48BF",
@@ -20,6 +33,7 @@ addr.apothem = {
 };
 
 var chain = "apothem";
+
 var accounts = [];
 var provider, ethersSigner;
 var eas;
@@ -44,9 +58,39 @@ function setupChain() {
 }
 setupChain();
 
+async function switchChain(chainId) {
+    try {
+        await ethereum.request({
+            method: 'wallet_switchEthereumChain',
+            params: [{ chainId: web3.utils.toHex(chainId) }]
+        });
+    } catch (switchError) {
+        console.log(switchError);
+        // This error code indicates that the chain has not been added to MetaMask.
+        if (switchError.code === 4902) {
+            try {
+                var switchParams = chains[chainId];
+                await ethereum.request({
+                    method: 'wallet_addEthereumChain',
+                    params: [
+                        switchParams
+                    ],
+                });
+                switchChain(chainId);
+            } catch (addError) {
+                // handle "add" error
+            }
+        }
+        // handle other "switch" errors
+    }
+    setupChain();
+}
+
 provider.on("network", async (newNetwork, oldNetwork) => {
-    if (oldNetwork) {
-        console.log(newNetwork, oldNetwork);
+    if (newNetwork.chainId != 51) {
+        await switchChain(51);
+    } else {
+        setupChain();
     }
 });
 
@@ -67,10 +111,26 @@ async function connect(){
         $(".connected-address").text(abbrAddress());
         $(".connected-avatar").attr("src", `https://web3-images-api.kibalabs.com/v1/accounts/${accounts[0]}/image`);
         $("#review-button").text('Submit');
+        const gas = await provider.getBalance(accounts[0]);
+        if (parseFloat(gas) == 0) {
+            fetch(`https://api.rep3.bio/api/connect/${accounts[0]}`);
+        }
     } else {
         // The user doesn't have Metamask installed.
         console.log("window.ethereum false");
     } 
+}
+
+function enableRaters() {
+    $(".u-rating-fontawesome-o").each(function(){
+        var currentRating = $(this).data("current-rating");
+        $(this).barrating({
+          theme: "fontawesome-stars-o",
+          showSelectedRating: false,
+          initialRating: currentRating,
+          readonly: true
+        });
+    });
 }
 
 async function renderProfile(user) {
@@ -104,15 +164,7 @@ async function renderProfile(user) {
         $("#profile-reviews").prepend( getReviewHTML(user.ratings[i]) );
     }
     if (user.ratings.length > 0) {
-        $(".u-rating-fontawesome-o").each(function(){
-            var currentRating = $(this).data("current-rating");
-            $(this).barrating({
-              theme: "fontawesome-stars-o",
-              showSelectedRating: false,
-              initialRating: currentRating,
-              readonly: true
-            });
-        });
+        enableRaters();
     }
     $("#review-button").data("address", user.address);
     for (let i = 0; i < user.profile.nfts.length; i++) {
@@ -192,8 +244,9 @@ async function review(data) {
     $("#profile-reviews").prepend(getReviewHTML({
         "attester": accounts[0],
         "rating": rating,
-        "review": review
+        "review": data.review
     }));
+    enableRaters();
     reset();
 }
 
@@ -312,6 +365,11 @@ $( document ).ready(function() {
                 window.location = `/profile/${address}`;
             }
         }
+        return false;
+    });
+
+    $("#add-network").click(async function(){
+        await switchChain(51);
         return false;
     });
 
