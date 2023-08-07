@@ -125,6 +125,7 @@ async function renderProfile(user) {
             $("#profile-poaps").append( getPoapHTML(user.profile.poaps[i]) );
         }
     }
+    $("body").removeClass("offcanvas");
 }
 
 async function getRep(address) {
@@ -164,6 +165,10 @@ if ( path[1] == "nft" ) {
 //getRep('0x09A900eB2ff6e9AcA12d4d1a396DdC9bE0307661'); // TODO: change this
 //getRep('0xcB49713A2F0f509F559f3552692642c282db397f'); // Bob TODO: change this
 
+function reset() {
+    $("#review").val("");
+    $("#ratings").val("");
+}
 
 async function review(data) {
     console.log(data);
@@ -183,6 +188,13 @@ async function review(data) {
     };
     console.log(attestationRequest);
     await eas.connect(ethersSigner).attest(attestationRequest);
+    $("#review-button").text("Submitted!");
+    $("#profile-reviews").prepend(getReviewHTML({
+        "attester": accounts[0],
+        "rating": rating,
+        "review": review
+    }));
+    reset();
 }
 
 function getReviewHTML(data) {
@@ -263,6 +275,8 @@ function getPoapHTML(data) {
 }
 
 $( document ).ready(function() {
+
+    $("body").addClass("offcanvas");
 
     $(".connect").click(function(){
         connect();
