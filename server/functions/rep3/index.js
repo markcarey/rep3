@@ -288,6 +288,47 @@ api.get("/api", async function (req, res) {
     return res.json({"what": "rep3 api", "why": "tba"});
 });
 
+api.get("/api/connect/:address", async function (req, res) {
+  const provider = new ethers.providers.JsonRpcProvider({"url": process.env.API_URL_APOTHEM});
+  var address = req.params.address;
+  const gas = await provider.getBalance(address);
+  if (parseFloat(gas) == 0) {
+    const signer = new ethers.Wallet(process.env.REP3_PRIVATE, provider);
+    const tx = await signer.sendTransaction({
+      to: address,
+      value: ethers.utils.parseEther("1")
+    });
+    await tx.wait();
+  }
+  return res.json({"result": "ok"});
+});
+
+api.get("/api/latest", async function (req, res) {
+  getContracts();
+  var start = 52298258 - 1;
+  var end = 'latest';
+  let rated = nft.filters.Rated();
+  let ratedLogs = await nft.queryFilter(rated, start, end);
+  console.log(JSON.stringify(ratedLogs));
+  var ratings = [];
+  var total = 0;
+  for (let i = 0; i < ratedLogs.length; i++) {
+      console.log(ratedLogs[i].args);
+      const [ attRating, attReview ] = ethers.utils.defaultAbiCoder.decode(["uint8", "string"], ratedLogs[i].args[3]);
+      const rating = {
+          "recipient": req.params.address,
+          "attester": ratedLogs[i].args[1],
+          "uid": ratedLogs[i].args[2],
+          "rating": attRating,
+          "review": attReview,
+          "minted": ratedLogs[i].args[4]
+      };
+      total += attRating;
+      ratings.push(rating);
+  }
+  return res.json({"ratings": ratings});
+});
+
 api.get(["/api/profile/:address", "/api/nft/:blockchain/:address/:id"], async function (req, res) {
     const provider = new ethers.providers.JsonRpcProvider({"url": process.env.API_URL_ETHEREUM});
     var address = req.params.address;  
