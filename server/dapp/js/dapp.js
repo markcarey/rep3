@@ -135,6 +135,7 @@ function enableRaters() {
 
 async function renderProfile(user) {
     $("#profile-title").text(user.address);
+    $("#site-section").text("Profiles");
     $("#profile-avatar").data("address", user.address).attr("src", user.profile.image);
     $("#profile-address").text(user.address);
     $("#profile-name").text(user.profile.name);
@@ -180,6 +181,18 @@ async function renderProfile(user) {
     $("body").removeClass("offcanvas");
 }
 
+async function renderLatest(ratings) {
+    $("#profile-title").text("Latest Reviews");
+    $("#site-section").text("Latest");
+    for (let i = 0; i < ratings.length; i++) {
+        $("#latest-reviews").prepend( getReviewHTML(ratings[i]) );
+    }
+    if (ratings.length > 0) {
+        enableRaters();
+    }
+    $("body").removeClass("offcanvas");
+}
+
 async function getRep(address) {
     const res = await fetch(`https://api.rep3.bio/api/profile/${address}`, { 
         method: 'GET', 
@@ -202,6 +215,17 @@ async function getNft(blockchain, address, id) {
     console.log(user);
     await renderProfile(user);
 }
+async function getLatest() {
+    const res = await fetch(`https://api.rep3.bio/api/latest`, { 
+        method: 'GET', 
+        headers: {
+            "Content-Type": "application/json"
+        }
+    });
+    var resp = await res.json();
+    console.log(resp);
+    await renderLatest(resp.ratings);
+}
 
 const path = window.location.pathname.split('/');
 console.log("path", path);
@@ -211,7 +235,10 @@ if ( path[1] == "nft" ) {
 } else if ( path[1] == "profile") {
     getRep(path[2]);
 } else {
-    // TODO: home page?
+    console.log("not a profile url");
+    $( document ).ready(function() {
+        getLatest();
+    });
 }
 
 //getRep('0x09A900eB2ff6e9AcA12d4d1a396DdC9bE0307661'); // TODO: change this
