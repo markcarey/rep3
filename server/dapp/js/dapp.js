@@ -134,6 +134,8 @@ function enableRaters() {
 }
 
 async function renderProfile(user) {
+    $("#rep3-reviews").hide();
+    $("#rep3-profile").show();
     $("#profile-title").text(user.address);
     $("#site-section").text("Profiles");
     $("#profile-avatar").data("address", user.address).attr("src", user.profile.image);
@@ -162,7 +164,7 @@ async function renderProfile(user) {
         $("#farcaster").attr("href", `https://warpcast.com/${user.profile.socials.farcaster}`).attr("data-bs-original-title", user.profile.socials.farcaster).tooltip().parent().show();
     }
     for (let i = 0; i < user.ratings.length; i++) {
-        $("#profile-reviews").prepend( getReviewHTML(user.ratings[i]) );
+        $("#profile-reviews").prepend( getReviewHTML(user.ratings[i], false) );
     }
     if (user.ratings.length > 0) {
         enableRaters();
@@ -182,10 +184,12 @@ async function renderProfile(user) {
 }
 
 async function renderLatest(ratings) {
+    $("#rep3-reviews").show();
+    $("#rep3-profile").hide();
     $("#profile-title").text("Latest Reviews");
     $("#site-section").text("Latest");
     for (let i = 0; i < ratings.length; i++) {
-        $("#latest-reviews").prepend( getReviewHTML(ratings[i]) );
+        $("#latest-reviews").prepend( getReviewHTML(ratings[i], true) );
     }
     if (ratings.length > 0) {
         enableRaters();
@@ -227,6 +231,15 @@ async function getLatest() {
     await renderLatest(resp.ratings);
 }
 
+async function main(){
+    if ("ethereum" in window) {
+        accounts = await window.ethereum.request({method: 'eth_accounts'});
+        if (accounts.length > 0) {
+            connect();
+        }
+    }
+}
+
 const path = window.location.pathname.split('/');
 console.log("path", path);
 
@@ -240,6 +253,8 @@ if ( path[1] == "nft" ) {
         getLatest();
     });
 }
+
+main();
 
 //getRep('0x09A900eB2ff6e9AcA12d4d1a396DdC9bE0307661'); // TODO: change this
 //getRep('0xcB49713A2F0f509F559f3552692642c282db397f'); // Bob TODO: change this
@@ -277,15 +292,20 @@ async function review(data) {
     reset();
 }
 
-function getReviewHTML(data) {
+function getReviewHTML(data, latest) {
     var html = '';
     data.image = `https://web3-images-api.kibalabs.com/v1/accounts/${data.attester}/image`;
     data.name = abbrAddress(data.attester);
+    data.target = '';
+    if (latest) {
+        data.recipientName = abbrAddress(data.recipient);
+        data.target = `reviewed <a class="attestor" href="/profile/${data.recipient}">${data.recipientName}</a>`
+    }
     html = `
         <!-- Review -->
         <div class="your-msg review-block">
         <div class="media"><img class="img-50 img-fluid m-r-20 rounded-circle attester-avatar" alt="" src="${data.image}">
-            <div class="media-body"><span class="f-w-600"><a class="attestor" href="/profile/${data.attester}">${data.name}</a> <!--<span>1 Year Ago</span>--> </span>
+            <div class="media-body"><span class="f-w-600"><a class="attestor" href="/profile/${data.attester}">${data.name}</a> ${data.target}<!--<span>1 Year Ago</span>--> </span>
             <select class="rating u-rating-fontawesome-o" name="rating" data-current-rating="${data.rating}" autocomplete="off">
                 <option value="1">1</option>
                 <option value="2">2</option>
@@ -397,6 +417,12 @@ $( document ).ready(function() {
 
     $("#add-network").click(async function(){
         await switchChain(51);
+        return false;
+    });
+
+    $("#menu-search").click(function(){
+        $("body").addClass("offcanvas");
+        $(".header-search").click();
         return false;
     });
 

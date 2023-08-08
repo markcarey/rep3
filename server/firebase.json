@@ -33,11 +33,11 @@
       },
       {
         "source": "/profile/*",
-        "destination": "/profile.html"
+        "destination": "/index.html"
       },
       {
         "source": "/nft/**",
-        "destination": "/profile.html"
+        "destination": "/index.html"
       }
     ]
   }

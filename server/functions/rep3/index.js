@@ -316,7 +316,7 @@ api.get("/api/latest", async function (req, res) {
       console.log(ratedLogs[i].args);
       const [ attRating, attReview ] = ethers.utils.defaultAbiCoder.decode(["uint8", "string"], ratedLogs[i].args[3]);
       const rating = {
-          "recipient": req.params.address,
+          "recipient": ratedLogs[i].args[0],
           "attester": ratedLogs[i].args[1],
           "uid": ratedLogs[i].args[2],
           "rating": attRating,
