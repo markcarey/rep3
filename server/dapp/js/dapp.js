@@ -107,7 +107,7 @@ async function connect(){
         await provider.send("eth_requestAccounts", []);
         ethersSigner = provider.getSigner();
         accounts[0] = await ethersSigner.getAddress();
-        console.log(accounts);
+        //console.log(accounts);
         $(".connected-address").text(abbrAddress());
         $(".connected-avatar").attr("src", `https://web3-images-api.kibalabs.com/v1/accounts/${accounts[0]}/image`);
         $("#review-button").text('Submit');
@@ -205,7 +205,7 @@ async function getRep(address) {
         }
     });
     var user = await res.json();
-    console.log(user);
+    //console.log(user);
     await renderProfile(user);
 }
 async function getNft(blockchain, address, id) {
@@ -241,7 +241,7 @@ async function main(){
 }
 
 const path = window.location.pathname.split('/');
-console.log("path", path);
+//console.log("path", path);
 
 if ( path[1] == "nft" ) {
     getNft(path[2], path[3], path[4]);
