@@ -17,7 +17,10 @@
         "scripts/content.js"
       ],
       "matches": [
-        "https://*.etherscan.io/address/0x*"
+        "https://*.etherscan.io/address/0x*",
+        "https://*.polygonscan.com/address/0x*",
+        "https://*.arbiscan.io/address/0x*",
+        "https://*.opensea.io/assets/*/0x*/*"
       ]
     }
   ]
