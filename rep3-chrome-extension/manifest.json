@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Rep3",
-  "version": "0.1",
+  "version": "0.0.1",
   "description": "Adds Rep3 ratings and raters where EVM addresses and NFTs are shown",
 
   "icons": {
@@ -35,7 +35,6 @@
     }
   ],
   "permissions": [
-    "tabs",
-    "declarativeContent"
+    "tabs"
   ]
 }

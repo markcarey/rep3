@@ -5,7 +5,10 @@ chrome.omnibox.onInputEntered.addListener((text) => {
 });
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-    setBadge(tab);
+    console.log(changeInfo);
+    if ("status" in changeInfo && changeInfo.status == "complete") {
+        setBadge(tab);
+    }
 });
 
 chrome.tabs.onCreated.addListener(tab => {
@@ -14,6 +17,7 @@ chrome.tabs.onCreated.addListener(tab => {
 
 async function getRatingForAddress(address) {
     return new Promise(async (resolve, reject) => {
+      console.log('get profile for ' + address);
       const res = await fetch(`https://api.rep3.bio/api/profile/${address}`, { 
         method: 'GET', 
         headers: {
@@ -39,11 +43,19 @@ async function getRatingForNFT(blockchain, address, tokenId) {
 }
 
 async function setBadge(tab) {
-    const url = tab.url;
+    console.log(tab);
+    if (tab.status != 'complete') {
+        return;
+    }
+    chrome.action.setBadgeText({
+        "text": '',
+        "tabId": tab.id
+    });
     var rep3Url = "";
-    const path = url.split('/');
-    var profile;
-    if (url.match(/.*\/0x[a-fA-F0-9]{40}\/[0-9]+$/i)) {
+    const path = tab.url.split('/');
+    console.log(path);
+    var profile = null;
+    if (tab.url.match(/.*\/0x[a-fA-F0-9]{40}\/[0-9]+$/i)) {
         // assume NFT
         //rep3Url = `https://rep3.bio/api/nft/${path[4]}/${path[5]}/${path[6]}`;
         profile = await getRatingForNFT(path[4], path[5], path[6]);
@@ -57,11 +69,14 @@ async function setBadge(tab) {
         }
     }
     if (profile) {
+        console.log(profile);
+        chrome.action.enable(tab.id);
         const stars = profile.average;
         if ( stars > 0 ) {
             //chrome.browserAction.setBadgeBackgroundColor({ "color": '#F00' }, () => {
             //    chrome.browserAction.setBadgeText({ "text": stars });
             //});
+            console.log(stars, profile);
             chrome.action.setBadgeText({
                 "text": ''+stars,
                 "tabId": tab.id
@@ -72,17 +87,5 @@ async function setBadge(tab) {
     }
 }
 
-let rule1 = {
-    conditions: [
-      new chrome.declarativeContent.PageStateMatcher({
-        pageUrl: { urlMatches: ".*\/0x[a-fA-F0-9]{40}\/.*" }
-      })
-    ],
-    actions: [ new chrome.declarativeContent.ShowAction() ]
-};
-chrome.runtime.onInstalled.addListener(function(details) {
-    chrome.declarativeContent.onPageChanged.removeRules(undefined, function() {
-        chrome.declarativeContent.onPageChanged.addRules([rule1]);
-    });
-});
+
 

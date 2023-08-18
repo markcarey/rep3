@@ -1,36 +1,6 @@
-//var user = { "average": 4.6 };
-//const stars = user.average;
-
-var provider;
-
 const sleep = (milliseconds) => {
   return new Promise(resolve => setTimeout(resolve, milliseconds))
 };
-
-async function connect(){
-  if (window.ethereum) {
-      //console.log("window.ethereum true");
-      const prov = {"url": "https://rpc.apothem.network"};
-      provider = new ethers.providers.JsonRpcProvider(prov);
-      if (window.ethereum) {
-          provider = new ethers.providers.Web3Provider(window.ethereum, "any");
-      }
-      await provider.send("eth_requestAccounts", []);
-      ethersSigner = provider.getSigner();
-      accounts[0] = await ethersSigner.getAddress();
-      console.log(accounts);
-      $(".connected-address").text(abbrAddress());
-      $(".connected-avatar").attr("src", `https://web3-images-api.kibalabs.com/v1/accounts/${accounts[0]}/image`);
-      $("#review-button").text('Submit');
-      const gas = await provider.getBalance(accounts[0]);
-      if (parseFloat(gas) == 0) {
-          fetch(`https://api.rep3.bio/api/connect/${accounts[0]}`);
-      }
-  } else {
-      // The user doesn't have Metamask installed.
-      console.log("window.ethereum false");
-  } 
-}
 
 async function getRatingForAddress(address) {
   return new Promise(async (resolve, reject) => {
@@ -88,8 +58,7 @@ $( document ).ready(function() {
       $(".item--counts").find("button:last-child").after($("section.item--counts").find("button:nth-child(2)").clone());
       $(".item--counts").find("button:last-child").css("margin-left", "24px").find("i").text("star_border").parents("button").find("span").text(`${stars} stars`);
       $(".item--counts").find("button:last-child").click(function(){
-        connect();
-        //window.location = `https://rep3.bio/nft/${path[2]}/${path[3]}/${path[4]}`;
+        window.location = `https://rep3.bio/nft/${path[2]}/${path[3]}/${path[4]}`;
       });
     }
   });
