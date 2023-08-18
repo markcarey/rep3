@@ -197,7 +197,8 @@ async function getNftImage(blockchain, address, id) {
           })
       });
       var result = await res.json();        
-      resolve(result.data.TokenNft.contentValue.image.small);
+      var image = result.data.TokenNft.contentValue.image ? result.data.TokenNft.contentValue.image.small : "";
+      resolve(image);
   });
 }
 
@@ -391,7 +392,7 @@ api.get(["/api/profile/:address", "/api/nft/:blockchain/:address/:id"], async fu
     if (!image) {
       image = `https://web3-images-api.kibalabs.com/v1/accounts/${address}/image`;
       if (nfts.length > 0) {
-        image = nfts[0].tokenNfts.contentValue.image.small; // TODO: update to check for NFTs missing metadata and/or images?
+        image = nfts[0].tokenNfts.contentValue.image ? nfts[0].tokenNfts.contentValue.image.small : image; // TODO: update to check for NFTs missing metadata and/or images?
         if ( image.startsWith('ipfs://') ) {
           image = ipfsToHttp(image);
         }

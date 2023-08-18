@@ -39,6 +39,14 @@ var provider, ethersSigner;
 var eas;
 var profileAddress, profileUser;
 
+function inFrame() {
+    if ( window.location !== window.parent.location ) {
+        return true;
+    } else {
+         return false;
+    }
+}
+
 function setupChain() {
     var rpcURL = addr[chain].rpc;
     const prov = {"url": "https://"+rpcURL};
@@ -379,7 +387,12 @@ $( document ).ready(function() {
     $("body").addClass("offcanvas");
 
     $(".connect").click(function(){
-        connect();
+        if ( inFrame() ) {
+            $(this).attr("target", "_blank").attr("href", window.location);
+            return true;
+        } else {
+            connect();
+        }
         return false;
     });
 

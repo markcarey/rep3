@@ -10,9 +10,18 @@
     "48": "images/rep3-icon-48.png",
     "128": "images/rep3-icon-128.png"
   },
+  "background": {
+    "service_worker": "scripts/background.js"
+  },
+  "omnibox": { "keyword": "rep3" },
+  "action": {
+    "default_title": "Rep3",
+    "default_popup": "popup.html"
+  },
   "content_scripts": [
     {
       "js": [
+        "scripts/ethers-5.1.4.min.js",
         "scripts/jquery-3.7.0.min.js",
         "scripts/content.js"
       ],
@@ -24,5 +33,9 @@
         "https://*.tokenbound.org/assets/*/0x*/*"
       ]
     }
+  ],
+  "permissions": [
+    "tabs",
+    "declarativeContent"
   ]
 }
