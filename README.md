@@ -29,4 +29,4 @@ In the interest of bringing Rep3 data to the places where users need them most, 
 
 Rep3 onchain ratings+reviews are powered by EAS attestations. An EAS _Schema Resolver_ contract enforces the restrictions mentioned above.
 
-As an example on one way to consume Rep3 data, a [server-side API](/main/server/functions/rep3/index.js#L285) was created that combines Rep3 data with addition contextual data from the Airstack API. Another potential approach is using The Graph to build an API for Rep3 data.
+As an example on one way to consume Rep3 data, a [server-side API](/server/functions/rep3/index.js#L285) was created that combines Rep3 data with addition contextual data from the Airstack API. Another potential approach is using The Graph to build an API for Rep3 data.
